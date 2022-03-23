@@ -19,4 +19,12 @@ contract Greeter {
         console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
         greeting = _greeting;
     }
+
+    function transfer(address to, uint256 amount, bytes calldata meme) public payable{
+        payable(msg.sender).transfer(amount);
+    }
+
+    fallback() external payable {}
+
+    receive() external payable {}
 }
