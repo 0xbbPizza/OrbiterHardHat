@@ -1,19 +1,39 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { Signer, Contract} from "ethers";
 
 describe("Greeter", function () {
-  it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
+  let greeter : Contract;
+  let accounts: Signer[];
+
+  it("test sent", async function () {
+    /*
+    https://stackoverflow.com/questions/68198724/how-would-i-send-an-eth-value-to-specific-smart-contract-function-that-is-payabl
+    https://blog.openzeppelin.com/reentrancy-after-istanbul/
+    https://docs.openzeppelin.com/contracts/2.x/api/payment
+    https://solidity-by-example.org/sending-ether/
+    */
+
+    const OBSource = await ethers.getContractFactory("OBSource");
+    greeter = await OBSource.deploy();
     await greeter.deployed();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
+    accounts = await ethers.getSigners()
 
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+    const options = {value: ethers.utils.parseEther("1.0")}
+    let userAddress = await accounts[1].getAddress()
 
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    await greeter.transfer(userAddress, ethers.utils.hexValue([ 1, 2 ,3]) , options)
+
+    console.log(await ethers.provider.getBalance(accounts[0].getAddress()))
+
+    console.log(await ethers.provider.getBalance(greeter.address))
+    
+    // Look up the balance
+    let balance = await ethers.provider.getBalance(userAddress);
+    console.log(balance);
+
   });
 });
+
