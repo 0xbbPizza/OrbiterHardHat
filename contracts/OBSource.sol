@@ -1,15 +1,12 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract OBSource {
-
-    event txLog(address from , address index to ,uint256 amout, bytes ext);
-
-    function transfer(address payable _to , bytes calldata _ext) public payable {
+contract OBSource is ReentrancyGuard {
+    
+    function transfer(address payable _to , bytes calldata _ext) public payable nonReentrant {
         (bool sent, ) = _to.call{value: msg.value}("");
-        require(sent, "Failed to send Ether");
-        emit txLog(msg.sender,_to, msg.value , _ext);
+        require(sent, "ERROR");
     }
 }

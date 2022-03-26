@@ -24,7 +24,7 @@ describe("Greeter", function () {
     let userAddress = await accounts[1].getAddress()
 
 
-    await greeter.transfer(userAddress, ethers.utils.hexValue([ 1, 2 ,3]) , options)
+    await greeter.transfer(userAddress, ethers.utils.hexValue("0x1234") , options)
 
     console.log(await ethers.provider.getBalance(accounts[0].getAddress()))
 
