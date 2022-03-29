@@ -1,4 +1,4 @@
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { ethers } from "hardhat";
 
 describe("Greeter", function () {
@@ -47,29 +47,33 @@ describe("Greeter", function () {
 
     accounts = await ethers.getSigners();
 
-    let userAddress = await accounts[1].getAddress();
-
-    // await greeter.transferERC20(
-    //   _token,
-    //   userAddress,
-    //   ethers.utils.hexValue(1000000),
-    //   ethers.utils.hexValue("0x1234")
-    // );
+    const senderAddress = await accounts[1].getAddress();
+    const recipientAddress = await accounts[0].getAddress();
 
     const greeterErc20 = await (
       await ethers.getContractFactory("ERC20")
     ).deploy("USDC", "USDC");
     const contract = await greeterErc20.deployed();
 
-    console.log(await accounts[0].getAddress());
-    console.log(await contract.balanceOf(await accounts[0].getAddress()));
+    // Mint
+    await (<any>greeterErc20).mint(senderAddress, utils.hexValue(100000000));
+
+    await greeter.transferERC20(
+      greeter.address,
+      recipientAddress,
+      utils.hexValue(1000000),
+      utils.hexValue("0x1234")
+    );
+
+    console.log(recipientAddress);
+    console.log(await contract.balanceOf(recipientAddress));
 
     console.log(greeter.address);
     console.log(await contract.balanceOf(greeter.address));
 
     // Look up the balance
-    console.log(userAddress);
-    let balance = await contract.balanceOf(userAddress);
+    console.log(senderAddress);
+    let balance = await contract.balanceOf(senderAddress);
     console.log(balance);
   });
 });
