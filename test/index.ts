@@ -47,22 +47,26 @@ describe("Greeter", function () {
 
     accounts = await ethers.getSigners();
 
-    const senderAddress = await accounts[1].getAddress();
-    const recipientAddress = await accounts[0].getAddress();
+    const senderAddress = await accounts[0].getAddress();
+    const recipientAddress = await accounts[1].getAddress();
+    console.warn(`senderAddress: ${senderAddress}, recipientAddress: ${recipientAddress}`);
 
     const greeterErc20 = await (
-      await ethers.getContractFactory("ERC20")
+      await ethers.getContractFactory("OBERC20")
     ).deploy("USDC", "USDC");
     const contract = await greeterErc20.deployed();
 
     // Mint
-    await (<any>greeterErc20).mint(senderAddress, utils.hexValue(100000000));
+    await greeterErc20.mint(senderAddress, utils.hexValue(100000000));
 
-    await greeter.transferERC20(
-      greeter.address,
+    // Approve
+    await greeterErc20.approve(greeter.address, ethers.constants.MaxUint256)
+
+    await greeter.transfer(
+      // greeter.address,
       recipientAddress,
-      utils.hexValue(1000000),
-      utils.hexValue("0x1234")
+      utils.hexValue(10000000),
+      // utils.hexValue("0x1234")
     );
 
     console.log(recipientAddress);
