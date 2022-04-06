@@ -7,19 +7,21 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 
-import * as fs from 'fs';
+import * as fs from "fs";
 // dotenv.config({ path: __dirname+'/.env' });
 
-const privateKeyPath = './generated/PrivateKey.secret';
+const privateKeyPath = "./generated/PrivateKey.secret";
 const getPrivateKey = (): string[] => {
   try {
     return fs.readFileSync(privateKeyPath).toString().trim().split("\n");
   } catch (e) {
-    if (process.env.HARDHAT_TARGET_NETWORK !== 'localhost') {
-      console.log('☢️ WARNING: No PrivateKey file created for a deploy account. Try `yarn run generate` and then `yarn run account`.');
+    if (process.env.HARDHAT_TARGET_NETWORK !== "localhost") {
+      console.log(
+        "☢️ WARNING: No PrivateKey file created for a deploy account. Try `yarn run generate` and then `yarn run account`."
+      );
     }
   }
-  return [''];
+  return [""];
 };
 
 dotenv.config();
@@ -40,18 +42,41 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   solidity: "0.8.4",
   networks: {
+    mainnet: {
+      url: process.env.mainnetRPC,
+      accounts: getPrivateKey(),
+    },
     rinkeby: {
-      url: process.env.rinkebyRPC, // <---- YOUR INFURA ID! (or it won't work)
+      url: process.env.rinkebyRPC,
+      accounts: getPrivateKey(),
+    },
+
+    arbitrum: {
+      url: process.env.arbitrumRPC,
       accounts: getPrivateKey(),
     },
     rinkebyArbitrum: {
-      url: "https://rinkeby.arbitrum.io/rpc",
-      accounts: getPrivateKey()
+      url: process.env.rinkebyArbitrumRPC,
+      accounts: getPrivateKey(),
+    },
+
+    polygon: {
+      url: process.env.polygonRPC,
+      accounts: getPrivateKey(),
+    },
+    goerliPolygon: {
+      url: process.env.goerliPolygonRPC,
+      accounts: getPrivateKey(),
+    },
+
+    optimism: {
+      url: process.env.optimismRPC,
+      accounts: getPrivateKey(),
     },
     kovanOptimism: {
-      url: "https://kovan.optimism.io",
-      accounts: getPrivateKey()
-    }
+      url: process.env.kovanOptimismRPC,
+      accounts: getPrivateKey(),
+    },
   },
   // gasReporter: {
   //   enabled: process.env.REPORT_GAS !== undefined,
