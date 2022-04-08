@@ -16,12 +16,12 @@ contract OBSource is ReentrancyGuard, Context {
     }
 
     function transferERC20(
-        address _token,
+        IERC20 _token,
         address _to,
         uint256 _amount,
         bytes calldata _ext
-    ) public nonReentrant {
-        bool sent = IERC20(_token).transferFrom(_msgSender(), _to, _amount);
+    ) external nonReentrant {
+        bool sent = _token.transferFrom(msg.sender, _to, _amount);
         require(sent, "ERROR");
     }
 }
