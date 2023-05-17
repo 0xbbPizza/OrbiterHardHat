@@ -1,11 +1,11 @@
 import { Contract, Signer, utils } from "ethers";
 import { ethers } from "hardhat";
 
-describe("Greeter", function () {
-  let greeter: Contract;
+describe("OBSource", function () {
+  let obSource: Contract;
   let accounts: Signer[];
 
-  it("test transfer", async function () {
+  it("test transfer", async function() {
     /*
     https://stackoverflow.com/questions/68198724/how-would-i-send-an-eth-value-to-specific-smart-contract-function-that-is-payabl
     https://blog.openzeppelin.com/reentrancy-after-istanbul/
@@ -14,26 +14,26 @@ describe("Greeter", function () {
     */
 
     const OBSource = await ethers.getContractFactory("OBSource");
-    greeter = await OBSource.deploy();
-    await greeter.deployed();
+    obSource = await OBSource.deploy();
+    await obSource.deployed();
 
     accounts = await ethers.getSigners();
 
     const options = { value: ethers.utils.parseEther("1.0") };
     let userAddress = await accounts[1].getAddress();
 
-    await greeter.transfer(userAddress, 0x1234, options);
+    await obSource.transfer(userAddress, 0x1234, options);
 
     console.log(await ethers.provider.getBalance(accounts[0].getAddress()));
 
-    console.log(await ethers.provider.getBalance(greeter.address));
+    console.log(await ethers.provider.getBalance(obSource.address));
 
     // Look up the balance
     let balance = await ethers.provider.getBalance(userAddress);
     console.log(balance);
   });
 
-  it("test transferERC20", async function () {
+  it("test transferERC20", async function() {
     /*
     https://stackoverflow.com/questions/68198724/how-would-i-send-an-eth-value-to-specific-smart-contract-function-that-is-payabl
     https://blog.openzeppelin.com/reentrancy-after-istanbul/
@@ -42,8 +42,8 @@ describe("Greeter", function () {
     */
 
     const OBSource = await ethers.getContractFactory("OBSource");
-    greeter = await OBSource.deploy();
-    await greeter.deployed();
+    obSource = await OBSource.deploy();
+    await obSource.deployed();
 
     accounts = await ethers.getSigners();
 
@@ -51,18 +51,18 @@ describe("Greeter", function () {
     const recipientAddress = await accounts[1].getAddress();
     console.warn(`senderAddress: ${senderAddress}, recipientAddress: ${recipientAddress}`);
 
-    const greeterErc20 = await (
+    const obErc20 = await (
       await ethers.getContractFactory("OBERC20")
     ).deploy("USDC", "USDC");
-    const contract = await greeterErc20.deployed();
+    const contract = await obErc20.deployed();
 
     // Mint
-    await greeterErc20.mint(senderAddress, utils.hexValue(100000000));
+    await obErc20.mint(senderAddress, utils.hexValue(100000000));
 
     // Approve
-    await greeterErc20.approve(greeter.address, ethers.constants.MaxUint256)
+    await obErc20.approve(obSource.address, ethers.constants.MaxUint256)
 
-    await greeter.transfer(
+    await obSource.transfer(
       // greeter.address,
       recipientAddress,
       utils.hexValue(10000000),
@@ -72,8 +72,8 @@ describe("Greeter", function () {
     console.log(recipientAddress);
     console.log(await contract.balanceOf(recipientAddress));
 
-    console.log(greeter.address);
-    console.log(await contract.balanceOf(greeter.address));
+    console.log(obSource.address);
+    console.log(await contract.balanceOf(obSource.address));
 
     // Look up the balance
     console.log(senderAddress);
