@@ -1,3 +1,5 @@
+import "@matterlabs/hardhat-zksync-solc";
+import "@matterlabs/hardhat-zksync-deploy";
 import "@nomicfoundation/hardhat-toolbox";
 import { config as dotenvConfig } from "dotenv";
 import type { HardhatUserConfig } from "hardhat/config";
@@ -29,6 +31,9 @@ const chainIds = {
   "polygon-mumbai": 80001,
   sepolia: 11155111,
   goerli: 5,
+
+  zksync: 324,
+  "zksync-testnet": 280,
 };
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
@@ -39,6 +44,12 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       break;
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org";
+      break;
+    case "zksync":
+      jsonRpcUrl = "https://mainnet.era.zksync.io";
+      break;
+    case "zksync-testnet":
+      jsonRpcUrl = "https://testnet.era.zksync.dev";
       break;
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
@@ -55,6 +66,12 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
 }
 
 const config: HardhatUserConfig = {
+  zksolc: {
+    version: "1.3.10",
+    compilerSource: "binary",
+    settings: {},
+  },
+
   defaultNetwork: "hardhat",
   etherscan: {
     apiKey: {
@@ -92,6 +109,17 @@ const config: HardhatUserConfig = {
     "polygon-mumbai": getChainConfig("polygon-mumbai"),
     sepolia: getChainConfig("sepolia"),
     goerli: getChainConfig("goerli"),
+
+    zksync: {
+      ...getChainConfig("zksync"),
+      ethNetwork: "mainnet",
+      zksync: true,
+    },
+    "zksync-testnet": {
+      ...getChainConfig("zksync-testnet"),
+      ethNetwork: "goerli",
+      zksync: true,
+    },
   },
   paths: {
     artifacts: "./artifacts",
