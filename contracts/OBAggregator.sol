@@ -1,12 +1,24 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract OBAggregator is ReentrancyGuard {
+contract OBAggregator is ReentrancyGuard, Ownable {
+    // solhint-disable-next-line no-empty-blocks
+    fallback() external payable {}
+
+    // solhint-disable-next-line no-empty-blocks
+    receive() external payable {}
+
+    function widthdraw(uint256 amount) public onlyOwner {
+        (bool sent, ) = owner().call{value: amount}("");
+        require(sent, "ST");
+    }
+
     function aggregate(
-        address payable[] calldata tos,
+        address[] calldata tos,
         uint[] calldata amounts
     ) public payable nonReentrant {
         require(tos.length == amounts.length, "LM");
@@ -14,7 +26,7 @@ contract OBAggregator is ReentrancyGuard {
         uint256 totalAmount = 0;
         for (uint i = 0; i < tos.length; ) {
             (bool sent, ) = tos[i].call{value: amounts[i]}("");
-            require(sent, "SE");
+            require(sent, "ST");
 
             unchecked {
                 totalAmount += amounts[i];
@@ -22,7 +34,7 @@ contract OBAggregator is ReentrancyGuard {
             }
         }
 
-        require(totalAmount == msg.value, "AE");
+        require(totalAmount == msg.value, "TV");
     }
 
     // function aggregateERC20(
