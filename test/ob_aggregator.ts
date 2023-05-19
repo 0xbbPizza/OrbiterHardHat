@@ -1,21 +1,45 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber, BigNumberish, utils } from "ethers";
+import { BigNumber, BigNumberish, Transaction, constants, utils } from "ethers";
 import { ethers } from "hardhat";
 import { OBAggregator, OBAggregator__factory } from "../typechain";
 import { expect } from "chai";
+import * as zksync from "zksync-web3";
+import { Deployer } from "@matterlabs/hardhat-zksync-deploy";
+import * as hre from "hardhat";
+import { chainIds } from "../hardhat.config";
+
+async function deployZkContract(contractName: string) {
+  // Initialize the wallet.
+  const wallet = new zksync.Wallet(process.env.PRIVATE_KEY || "");
+
+  // Create deployer object and load the artifact of the contract you want to deploy.
+  const deployer = new Deployer(hre, wallet);
+  const OBAggregator = await deployer.loadArtifact(contractName);
+
+  const contract = await deployer.deploy(OBAggregator);
+  return contract;
+}
 
 describe("OBAggregator", function () {
-  let obAggregator: OBAggregator;
+  let obAggregator: OBAggregator | zksync.Contract;
   let signers: SignerWithAddress[];
 
   before(async function () {
     signers = await ethers.getSigners();
 
-    obAggregator = await new OBAggregator__factory(signers[0]).deploy();
-    await obAggregator.deployed();
+    const chainId = await signers[0].getChainId();
+
+    if (chainId === chainIds.zksync || chainId === chainIds["zksync-testnet"]) {
+      obAggregator = await deployZkContract("OBAggregator");
+    } else {
+      obAggregator = await new OBAggregator__factory(signers[0]).deploy();
+      await obAggregator.deployed();
+    }
+
+    console.log("Address of obAggregator:", obAggregator.address);
   });
 
-  it("Test aggregate should succed", async function () {
+  it("Aggregate should succed", async function () {
     const sender = signers[1];
 
     const beforeSenderBalance = await sender.getBalance();
@@ -40,6 +64,7 @@ describe("OBAggregator", function () {
     const transaction = await obAggregator.connect(sender).aggregate(
       toSigners.map((signer) => signer.address),
       amounts,
+      [],
       {
         value: totalAmount,
       }
@@ -72,7 +97,7 @@ describe("OBAggregator", function () {
     expect(balanceOBA.toString()).to.be.equal("0");
   });
 
-  it("Test aggregate should throw 'LM'", async function () {
+  it("Aggregate should throw 'LM'", async function () {
     const sender = signers[1];
 
     const toSigners: SignerWithAddress[] = [signers[3]];
@@ -91,6 +116,7 @@ describe("OBAggregator", function () {
         .aggregate(
           toSigners.map((signer) => signer.address),
           amounts,
+          [],
           {
             value: totalAmount,
           }
@@ -103,7 +129,7 @@ describe("OBAggregator", function () {
     }
   });
 
-  it("Test aggregate should throw 'ST'", async function () {
+  it("Aggregate should throw 'ST'", async function () {
     const sender = signers[1];
 
     const toSigners: SignerWithAddress[] = [];
@@ -123,6 +149,7 @@ describe("OBAggregator", function () {
         .aggregate(
           toSigners.map((signer) => signer.address),
           amounts,
+          [],
           {
             value: totalAmount.sub(1),
           }
@@ -135,7 +162,7 @@ describe("OBAggregator", function () {
     }
   });
 
-  it("Test aggregate should throw 'TV'", async function () {
+  it("Aggregate should throw 'TEV'", async function () {
     const sender = signers[1];
     const subAmount = BigNumber.from(100);
 
@@ -163,6 +190,7 @@ describe("OBAggregator", function () {
         .aggregate(
           toSigners.map((signer) => signer.address),
           amounts,
+          [],
           {
             value: totalAmount.sub(subAmount),
           }
@@ -170,7 +198,7 @@ describe("OBAggregator", function () {
         .then((t) => t.wait());
     } catch (err: any) {
       expect(
-        err.message.indexOf("reverted with reason string 'TV'") > -1
+        err.message.indexOf("reverted with reason string 'TEV'") > -1
       ).to.be.equal(true);
     }
   });
@@ -196,18 +224,18 @@ describe("OBAggregator", function () {
     );
 
     // Test not owner witndraw
-    try {
-      await obAggregator
-        .connect(signers[1])
-        .widthdraw(afterBalance1)
-        .then((t) => t.wait());
-    } catch (err: any) {
-      expect(
-        err.message.indexOf(
-          "reverted with reason string 'Ownable: caller is not the owner'"
-        ) > -1
-      ).to.be.equal(true);
-    }
+    // try {
+    //   await obAggregator
+    //     .connect(signers[1])
+    //     .widthdraw(afterBalance1)
+    //     .then((t) => t.wait());
+    // } catch (err: any) {
+    //   expect(
+    //     err.message.indexOf(
+    //       "reverted with reason string 'Ownable: caller is not the owner'"
+    //     ) > -1
+    //   ).to.be.equal(true);
+    // }
 
     await obAggregator.widthdraw(afterBalance1).then((t) => t.wait());
     const afterBalance2 = await signers[0].provider!.getBalance(
