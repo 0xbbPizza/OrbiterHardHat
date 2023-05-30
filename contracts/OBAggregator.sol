@@ -10,9 +10,6 @@ contract OBAggregator is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     // solhint-disable-next-line no-empty-blocks
-    fallback() external payable {}
-
-    // solhint-disable-next-line no-empty-blocks
     receive() external payable {}
 
     function widthdraw(uint256 amount) public {
